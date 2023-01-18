@@ -211,10 +211,12 @@ location_map_t parse_stations(config const& c,
       auto const adjusted_duration =
           std::max({tt.locations_.transfer_time_[s.idx_],
                     tt.locations_.transfer_time_[target_idx], duration});
-      tt.locations_.footpaths_out_[s.idx_].emplace_back(target_idx,
-                                                        adjusted_duration);
-      tt.locations_.footpaths_in_[target_idx].emplace_back(s.idx_,
-                                                           adjusted_duration);
+      for (auto& paths : tt.locations_.footpaths_out_) {
+        paths[s.idx_].emplace_back(target_idx, adjusted_duration);
+      }
+      for (auto& paths : tt.locations_.footpaths_in_) {
+        paths[target_idx].emplace_back(s.idx_, adjusted_duration);
+      }
     }
   }
 

@@ -419,9 +419,10 @@ void raptor<SearchDir, IntermodalTarget>::update_footpaths(unsigned const k) {
 
     update_intermodal_dest(l_idx,
                            [&]() { return state_.best_[to_idx(l_idx)]; });
-
-    auto const fps = kFwd ? tt_.locations_.footpaths_out_[l_idx]
-                          : tt_.locations_.footpaths_in_[l_idx];
+    //TODO: welche footpaths sollen hier für die Berechnung verwendet werden
+    //TODO: wahrscheinlich als Parameter irgendwo mitgeben/ aus timetable lesen
+    auto const fps = kFwd ? tt_.locations_.footpaths_out_[0][l_idx]
+                          : tt_.locations_.footpaths_in_[0][l_idx];
     trace("┊ ├ updating footpaths of {}\n", location{tt_, l_idx});
     for (auto const& fp : fps) {
       NIGIRI_COUNT(n_footpaths_visited_);

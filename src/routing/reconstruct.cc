@@ -26,11 +26,13 @@ void trace_start(char const* fmt_str, Args... args) {
   }
 }
 
+//TODO: vielleicht profile als Parameter für die Funktion
 template <direction SearchDir>
 std::optional<journey::leg> find_start_footpath(timetable const& tt,
                                                 query const& q,
                                                 journey const& j,
-                                                search_state const& state) {
+                                                search_state const& state,
+                                                int const profile=0) {
   trace("find_start_footpath()\n");
 
   constexpr auto const kFwd = SearchDir == direction::kForward;
@@ -71,9 +73,10 @@ std::optional<journey::leg> find_start_footpath(timetable const& tt,
       location{tt, leg_start_location},
       q.start_match_mode_ == location_match_mode::kEquivalent,
       is_journey_start(leg_start_location));
+  //TODO: welche footpaths sollen hier benutzt werden
   auto const& footpaths =
-      kFwd ? tt.locations_.footpaths_in_[leg_start_location]
-           : tt.locations_.footpaths_out_[leg_start_location];
+      kFwd ? tt.locations_.footpaths_in_[profile][leg_start_location]
+           : tt.locations_.footpaths_out_[profile][leg_start_location];
   auto const j_start_time = routing_time{tt, j.start_time_};
   auto const fp_target_time = state.round_times_[0][to_idx(leg_start_location)];
 
@@ -161,11 +164,13 @@ std::optional<journey::leg> find_start_footpath(timetable const& tt,
   throw utl::fail("no valid journey start found");
 }
 
+//TODO: vielleicht profile als Funktionsparameter
 template <direction SearchDir>
 void reconstruct_journey(timetable const& tt,
                          query const& q,
                          search_state const& state,
-                         journey& j) {
+                         journey& j,
+                         int const profile) {
   (void)q;  // TODO(felix) support intermodal start
 
   constexpr auto const kFwd = SearchDir == direction::kForward;
@@ -368,8 +373,9 @@ void reconstruct_journey(timetable const& tt,
                     dest_offset.duration_, transfer_time);
               }
 
-              for (auto const& fp : kFwd ? tt.locations_.footpaths_in_[eq]
-                                         : tt.locations_.footpaths_out_[eq]) {
+              //TODO: welche footpaths sollen hier verwendet werden?
+              for (auto const& fp : kFwd ? tt.locations_.footpaths_in_[profile][eq]
+                                         : tt.locations_.footpaths_out_[profile][eq]) {
                 auto fp_intermodal_dest = check_fp(
                     k, l, curr_time,
                     {fp.target_, dest_offset.duration_ + fp.duration_});
@@ -417,8 +423,9 @@ void reconstruct_journey(timetable const& tt,
     }
 
     trace("CHECKING FOOTPATHS OF {}\n", tt.locations_.names_.at(l).view());
+    //TODO: welche footpaths sollen hier verwendet werden
     auto const fps =
-        kFwd ? tt.locations_.footpaths_in_[l] : tt.locations_.footpaths_out_[l];
+        kFwd ? tt.locations_.footpaths_in_[profile][l] : tt.locations_.footpaths_out_[profile][l];
     for (auto const& fp : fps) {
       trace("FP: (name={}, id={}) --{}--> (name={}, id={})\n",
             tt.locations_.names_.at(l).view(), tt.locations_.ids_.at(l).view(),
@@ -457,9 +464,9 @@ void reconstruct_journey(timetable const& tt,
 }
 
 template void reconstruct_journey<direction::kForward>(
-    timetable const& tt, query const& q, search_state const& state, journey& j);
+    timetable const& tt, query const& q, search_state const& state, journey& j, int const profile);
 
 template void reconstruct_journey<direction::kBackward>(
-    timetable const& tt, query const& q, search_state const& state, journey& j);
+    timetable const& tt, query const& q, search_state const& state, journey& j, int const profile);
 
 }  // namespace nigiri::routing

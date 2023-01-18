@@ -13,6 +13,7 @@ namespace nigiri {
 struct timetable;
 
 struct location {
+  //TODO: Was soll location genau aussagen? Eventuell footpaths ändern und profile Informationen hinzufügen
   friend std::ostream& operator<<(std::ostream&, location const&);
   location(timetable const&, location_idx_t);
   location(std::string_view id,

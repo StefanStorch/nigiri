@@ -85,7 +85,7 @@ struct timetable {
         osm_ids_.emplace_back(osm_node_id_t::invalid());  // TODO(felix)
         parents_.emplace_back(l.parent_);
       }
-
+      //TODO: maybe assert within foreach
       assert(names_.size() == next_idx + 1);
       assert(coordinates_.size() == next_idx + 1);
       assert(ids_.size() == next_idx + 1);
@@ -94,15 +94,16 @@ struct timetable {
       assert(location_timezones_.size() == next_idx + 1);
       assert(equivalences_.size() == next_idx + 1);
       assert(children_.size() == next_idx + 1);
-      assert(footpaths_out_.size() == next_idx + 1);
-      assert(footpaths_in_.size() == next_idx + 1);
+      assert(footpaths_out_[0].size() == next_idx + 1);
+      assert(footpaths_in_[0].size() == next_idx + 1);
       assert(transfer_time_.size() == next_idx + 1);
       assert(osm_ids_.size() == next_idx + 1);
+      assert(osm_types_.size() == next_idx + 1);
       assert(parents_.size() == next_idx + 1);
 
       return it->second;
     }
-
+    //TODO: maybe use parameter or change location
     location get(location_idx_t const idx) {
       return location{ids_[idx].view(),
                       names_[idx].view(),
@@ -114,8 +115,8 @@ struct timetable {
                       location_timezones_[idx],
                       transfer_time_[idx],
                       it_range{equivalences_[idx]},
-                      it_range{footpaths_out_[idx]},
-                      it_range{footpaths_in_[idx]}};
+                      it_range{footpaths_out_[0][idx]},
+                      it_range{footpaths_in_[0][idx]}};
     }
 
     location get(location_id const& id) {
@@ -131,12 +132,14 @@ struct timetable {
     vector_map<location_idx_t, duration_t> transfer_time_;
     vector_map<location_idx_t, location_type> types_;
     vector_map<location_idx_t, osm_node_id_t> osm_ids_;
+    vector_map<location_idx_t, osm_type_t> osm_types_;
     vector_map<location_idx_t, location_idx_t> parents_;
     vector_map<location_idx_t, timezone_idx_t> location_timezones_;
     mutable_fws_multimap<location_idx_t, location_idx_t> equivalences_;
     mutable_fws_multimap<location_idx_t, location_idx_t> children_;
-    mutable_fws_multimap<location_idx_t, footpath> footpaths_out_;
-    mutable_fws_multimap<location_idx_t, footpath> footpaths_in_;
+    vecvec<string, int> profile_; //TODO: vector_map funktioniert nicht deshalb habe ich hier einen vecvec
+    vector<mutable_fws_multimap<location_idx_t, footpath>> footpaths_out_;
+    vector<mutable_fws_multimap<location_idx_t, footpath>> footpaths_in_;
     vector_map<timezone_idx_t, timezone> timezones_;
   } locations_;
 

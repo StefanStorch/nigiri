@@ -147,7 +147,8 @@ void get_starts(timetable const& tt,
                 std::vector<offset> const& station_offsets,
                 location_match_mode const mode,
                 bool const use_start_footpaths,
-                std::vector<start>& starts) {
+                std::vector<start>& starts,
+                int profile) {
   std::set<location_idx_t> seen;
   for (auto const& o : station_offsets) {
     seen.clear();
@@ -169,8 +170,8 @@ void get_starts(timetable const& tt,
 
             if (use_start_footpaths) {
               auto const footpaths = SearchDir == direction::kForward
-                                         ? tt.locations_.footpaths_out_[l]
-                                         : tt.locations_.footpaths_in_[l];
+                                         ? tt.locations_.footpaths_out_[profile][l]
+                                         : tt.locations_.footpaths_in_[profile][l];
               for (auto const& fp : footpaths) {
                 trace("FOOTPATH START: {} --offset={},fp_duration={}--> {}\n",
                       location{tt, l}, o.duration_, fp.duration_,
@@ -193,8 +194,8 @@ void get_starts(timetable const& tt,
             if (use_start_footpaths) {
               auto const footpaths =
                   SearchDir == direction::kForward
-                      ? tt.locations_.footpaths_out_[o.target_]
-                      : tt.locations_.footpaths_in_[o.target_];
+                      ? tt.locations_.footpaths_out_[profile][o.target_]
+                      : tt.locations_.footpaths_in_[profile][o.target_];
               for (auto const& fp : footpaths) {
                 starts.emplace_back(
                     start{.time_at_start_ = t,
@@ -239,7 +240,8 @@ template void get_starts<direction::kForward>(
     std::vector<offset> const&,
     location_match_mode,
     bool,
-    std::vector<start>&);
+    std::vector<start>&,
+    int);
 
 template void get_starts<direction::kBackward>(
     timetable const&,
@@ -247,6 +249,7 @@ template void get_starts<direction::kBackward>(
     std::vector<offset> const&,
     location_match_mode,
     bool,
-    std::vector<start>&);
+    std::vector<start>&,
+    int);
 
 }  // namespace nigiri::routing

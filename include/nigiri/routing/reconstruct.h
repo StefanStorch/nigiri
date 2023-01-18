@@ -16,6 +16,7 @@ template <direction SearchDir>
 void reconstruct_journey(timetable const&,
                          query const&,
                          search_state const&,
-                         journey&);
+                         journey&,
+                         int const profile=0);
 
 }  // namespace nigiri::routing

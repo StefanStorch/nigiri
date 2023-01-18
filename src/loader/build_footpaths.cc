@@ -75,21 +75,26 @@ void link_nearby_stations(timetable& tt) {
 
       auto const l_from_idx = location_idx_t{static_cast<unsigned>(from_idx)};
       auto const l_to_idx = location_idx_t{static_cast<unsigned>(to_idx)};
-
-      tt.locations_.footpaths_out_[l_from_idx].emplace_back(l_to_idx, duration);
-      tt.locations_.footpaths_in_[l_to_idx].emplace_back(l_from_idx, duration);
+      //TODO: vielleicht für alle einzelnen Profile Zeiten anders berechnen?
+      for (auto& footpaths : tt.locations_.footpaths_out_) {
+        footpaths[l_from_idx].emplace_back(l_to_idx, duration);
+      }
+      for (auto& footpaths : tt.locations_.footpaths_in_) {
+        footpaths[l_to_idx].emplace_back(l_from_idx, duration);
+      }
       tt.locations_.equivalences_[l_from_idx].emplace_back(l_to_idx);
     }
   }
 }
 
-footgraph get_footpath_graph(timetable& tt) {
+//TODO: vielleicht noch ein weiterer Parameter als input für welches Profil der footgraph sein soll?
+footgraph get_footpath_graph(timetable& tt, int profile=0) {
   footgraph g;
   g.resize(tt.locations_.src_.size());
   for (auto i = 0U; i != tt.locations_.src_.size(); ++i) {
     auto const idx = location_idx_t{i};
-    g[i].insert(end(g[i]), begin(tt.locations_.footpaths_out_[idx]),
-                end(tt.locations_.footpaths_out_[idx]));
+    g[i].insert(end(g[i]), begin(tt.locations_.footpaths_out_[profile][idx]),
+                end(tt.locations_.footpaths_out_[profile][idx]));
     std::sort(begin(g[i]), end(g[i]));
 
     //    for (auto const& fp : g[i]) {
@@ -137,10 +142,13 @@ static std::vector<std::pair<uint32_t, uint32_t>> find_components(
   return components;
 }
 
+//TODO: parameter hinzufügen von welchem profile?
+//TODO: vielleicht bei diesem Schritt alle Profile gleich setzen?
 void process_component(timetable& tt,
                        component_it const lb,
                        component_it const ub,
-                       footgraph const& fgraph) {
+                       footgraph const& fgraph,
+                       int const profile=0) {
   if (lb->first == kNoComponent) {
     return;
   }
@@ -159,8 +167,8 @@ void process_component(timetable& tt,
                          idx_a, fgraph[idx_a].size(), fgraph[idx_a], idx_b,
                          fgraph[idx_b].size(), fgraph[idx_b]);
 
-      tt.locations_.footpaths_out_[l_idx_a].emplace_back(fgraph[idx_a].front());
-      tt.locations_.footpaths_in_[l_idx_b].emplace_back(
+      tt.locations_.footpaths_out_[profile][l_idx_a].emplace_back(fgraph[idx_a].front());
+      tt.locations_.footpaths_in_[profile][l_idx_b].emplace_back(
           l_idx_a, fgraph[idx_a].front().duration_);
     }
     if (!fgraph[idx_b].empty()) {
@@ -168,8 +176,8 @@ void process_component(timetable& tt,
           fgraph[idx_b].size() == 1,
           "invalid size (a): idx_a={}, size={}, idx_b={}, size={}", idx_a,
           fgraph[idx_a].size(), idx_b, fgraph[idx_b].size());
-      tt.locations_.footpaths_out_[l_idx_b].emplace_back(fgraph[idx_b].front());
-      tt.locations_.footpaths_in_[l_idx_a].emplace_back(
+      tt.locations_.footpaths_out_[profile][l_idx_b].emplace_back(fgraph[idx_b].front());
+      tt.locations_.footpaths_in_[profile][l_idx_a].emplace_back(
           l_idx_b, fgraph[idx_b].front().duration_);
     }
     return;
@@ -265,26 +273,27 @@ next:
 
       print_dbg("{} --{}--> {}\n", location{tt, l_idx_a}, duration_t{mat(i, j)},
                 location{tt, l_idx_b});
-      tt.locations_.footpaths_out_[l_idx_a].emplace_back(l_idx_b,
+      tt.locations_.footpaths_out_[profile][l_idx_a].emplace_back(l_idx_b,
                                                          duration_t{mat(i, j)});
-      tt.locations_.footpaths_in_[l_idx_b].emplace_back(l_idx_a,
+      tt.locations_.footpaths_in_[profile][l_idx_b].emplace_back(l_idx_a,
                                                         duration_t{mat(i, j)});
     }
   }
 }
 
-void transitivize_footpaths(timetable& tt) {
+//TODO: Parameter für verschiedene Profile?
+void transitivize_footpaths(timetable& tt, int const profile=0) {
   scoped_timer timer("building transitively closed foot graph");
 
-  auto const fgraph = get_footpath_graph(tt);
+  auto const fgraph = get_footpath_graph(tt, profile);
 
   auto components = find_components(fgraph);
   std::sort(begin(components), end(components));
 
-  tt.locations_.footpaths_out_.clear();
-  tt.locations_.footpaths_out_[location_idx_t{tt.locations_.src_.size() - 1}];
-  tt.locations_.footpaths_in_.clear();
-  tt.locations_.footpaths_in_[location_idx_t{tt.locations_.src_.size() - 1}];
+  tt.locations_.footpaths_out_[profile].clear();
+  tt.locations_.footpaths_out_[profile][location_idx_t{tt.locations_.src_.size() - 1}];
+  tt.locations_.footpaths_in_[profile].clear();
+  tt.locations_.footpaths_in_[profile][location_idx_t{tt.locations_.src_.size() - 1}];
 
   std::vector<component_range> ranges;
   utl::equal_ranges_linear(
@@ -293,11 +302,12 @@ void transitivize_footpaths(timetable& tt) {
       [&](auto lb, auto ub) { process_component(tt, lb, ub, fgraph); });
 }
 
-void add_links_to_and_between_children(timetable& tt) {
+//TODO: Parameter für verschiedene Profile?
+void add_links_to_and_between_children(timetable& tt, int const profile=0) {
   mutable_fws_multimap<location_idx_t, footpath> fp_out;
-  for (auto l = location_idx_t{0U}; l != tt.locations_.footpaths_out_.size();
+  for (auto l = location_idx_t{0U}; l != tt.locations_.footpaths_out_[profile].size();
        ++l) {
-    for (auto const& fp : tt.locations_.footpaths_out_[l]) {
+    for (auto const& fp : tt.locations_.footpaths_out_[profile][l]) {
       trace("ADDING {} TO CHILDREN OF {}:  {}\n", location{tt, l},
             location{tt, fp.target_}, fp.duration_);
 
@@ -322,10 +332,10 @@ void add_links_to_and_between_children(timetable& tt) {
     }
   }
 
-  for (auto l = location_idx_t{0U}; l != tt.locations_.footpaths_out_.size();
+  for (auto l = location_idx_t{0U}; l != tt.locations_.footpaths_out_[profile].size();
        ++l) {
     for (auto const& fp : fp_out[l]) {
-      tt.locations_.footpaths_out_[l].emplace_back(fp);
+      tt.locations_.footpaths_out_[profile][l].emplace_back(fp);
     }
   }
 
@@ -334,11 +344,11 @@ void add_links_to_and_between_children(timetable& tt) {
 
     auto const t = tt.locations_.transfer_time_[parent];
     for (auto i = 0U; i != children.size(); ++i) {
-      tt.locations_.footpaths_out_[parent].emplace_back(children[i], t);
-      tt.locations_.footpaths_out_[children[i]].emplace_back(parent, t);
+      tt.locations_.footpaths_out_[profile][parent].emplace_back(children[i], t);
+      tt.locations_.footpaths_out_[profile][children[i]].emplace_back(parent, t);
       for (auto j = 0U; j != children.size(); ++j) {
         if (i != j) {
-          tt.locations_.footpaths_out_[children[i]].emplace_back(children[j],
+          tt.locations_.footpaths_out_[profile][children[i]].emplace_back(children[j],
                                                                  t);
         }
       }

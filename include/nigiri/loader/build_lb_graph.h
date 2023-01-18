@@ -7,7 +7,7 @@
 namespace nigiri::loader {
 
 template <direction SearchDir>
-void build_lb_graph(timetable& tt) {
+void build_lb_graph(timetable& tt, int const profile=0) {
   std::map<location_idx_t, duration_t> weights;
 
   auto const update_weight = [&](location_idx_t const target,
@@ -25,8 +25,8 @@ void build_lb_graph(timetable& tt) {
                               : tt.locations_.parents_[l];
 
     auto const& footpaths = SearchDir == direction::kForward
-                                ? tt.locations_.footpaths_in_[l]
-                                : tt.locations_.footpaths_out_[l];
+                                ? tt.locations_.footpaths_in_[profile][l]
+                                : tt.locations_.footpaths_out_[profile][l];
     for (auto const& fp : footpaths) {
       auto const parent = tt.locations_.parents_[fp.target_];
       auto const target =

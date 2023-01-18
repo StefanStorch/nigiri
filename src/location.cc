@@ -8,6 +8,7 @@ std::ostream& operator<<(std::ostream& out, location const& l) {
   return out << '(' << l.name_ << ", " << l.id_ << ')';
 }
 
+//TODO: maybe not hardcode the profile
 location::location(timetable const& tt, location_idx_t idx)
     : id_{tt.locations_.ids_[idx].view()},
       name_{tt.locations_.names_[idx].view()},
@@ -19,8 +20,8 @@ location::location(timetable const& tt, location_idx_t idx)
       timezone_idx_{tt.locations_.location_timezones_[idx]},
       transfer_time_{tt.locations_.transfer_time_[idx]},
       equivalences_{tt.locations_.equivalences_[idx]},
-      footpaths_out_{tt.locations_.footpaths_out_[idx]},
-      footpaths_in_{tt.locations_.footpaths_in_[idx]} {}
+      footpaths_out_{tt.locations_.footpaths_out_[0][idx]},
+      footpaths_in_{tt.locations_.footpaths_in_[0][idx]} {}
 
 location::location(
     std::string_view id,
