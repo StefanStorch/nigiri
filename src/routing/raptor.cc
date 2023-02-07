@@ -646,7 +646,7 @@ void raptor<SearchDir, IntermodalTarget>::route() {
   state_.results_.resize(
       std::max(state_.results_.size(), state_.destinations_.size()));
   get_starts<SearchDir>(tt_, q_.start_time_, q_.start_, q_.start_match_mode_,
-                        q_.use_start_footpaths_, state_.starts_);
+                        q_.use_start_footpaths_, state_.starts_, q_.profile_index_);
 
 #ifdef NIGIRI_LOWER_BOUND
 

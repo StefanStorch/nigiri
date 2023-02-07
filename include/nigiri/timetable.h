@@ -79,10 +79,11 @@ struct timetable {
         location_timezones_.emplace_back(l.timezone_idx_);
         equivalences_.emplace_back();
         children_.emplace_back();
-        footpaths_out_.emplace_back();
-        footpaths_in_.emplace_back();
+        footpaths_out_[0].emplace_back();
+        footpaths_in_[0].emplace_back();
         transfer_time_.emplace_back(l.transfer_time_);  // TODO(felix)
         osm_ids_.emplace_back(osm_node_id_t::invalid());  // TODO(felix)
+        osm_types_.emplace_back();
         parents_.emplace_back(l.parent_);
       }
       //TODO: maybe assert within foreach
@@ -132,14 +133,14 @@ struct timetable {
     vector_map<location_idx_t, duration_t> transfer_time_;
     vector_map<location_idx_t, location_type> types_;
     vector_map<location_idx_t, osm_node_id_t> osm_ids_;
-    vector_map<location_idx_t, osm_type_t> osm_types_;
+    vector_map<location_idx_t, osm_type> osm_types_;
     vector_map<location_idx_t, location_idx_t> parents_;
     vector_map<location_idx_t, timezone_idx_t> location_timezones_;
     mutable_fws_multimap<location_idx_t, location_idx_t> equivalences_;
     mutable_fws_multimap<location_idx_t, location_idx_t> children_;
-    vecvec<string, int> profile_; //TODO: vector_map funktioniert nicht deshalb habe ich hier einen vecvec
-    vector<mutable_fws_multimap<location_idx_t, footpath>> footpaths_out_;
-    vector<mutable_fws_multimap<location_idx_t, footpath>> footpaths_in_;
+    hash_map<string, int> profile_;
+    vector<mutable_fws_multimap<location_idx_t, footpath>> footpaths_out_{mutable_fws_multimap<location_idx_t, footpath>()};
+    vector<mutable_fws_multimap<location_idx_t, footpath>> footpaths_in_{mutable_fws_multimap<location_idx_t, footpath>()};
     vector_map<timezone_idx_t, timezone> timezones_;
   } locations_;
 

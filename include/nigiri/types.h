@@ -209,7 +209,6 @@ enum class location_type : std::uint8_t { kTrack, kPlatform, kStation };
 enum class event_type { kArr, kDep };
 enum class direction { kForward, kBackward };
 enum class osm_type {NODE, WAY, RELATION};
-using osm_type_t = cista::strong<osm_type, struct _osm_type_idx>;
 
 }  // namespace nigiri
 
