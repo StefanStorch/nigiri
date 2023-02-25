@@ -31,14 +31,22 @@ struct timetable {
 
     stop(location_idx_t const location,
          bool const in_allowed,
-         bool const out_allowed)
+         bool const out_allowed,
+         bool const wheelchair_in_allowed,
+         bool const wheelchair_out_allowed)
         : location_{location},
           in_allowed_{in_allowed ? 1U : 0U},
-          out_allowed_{out_allowed ? 1U : 0U} {}
+          out_allowed_{out_allowed ? 1U : 0U},
+          wheelchair_in_allowed_{wheelchair_in_allowed ? 1U : 0U},
+          wheelchair_out_allowed_{wheelchair_out_allowed ? 1U : 0U} {}
 
     location_idx_t location_idx() const { return location_idx_t{location_}; }
-    bool in_allowed() const { return in_allowed_ != 0U; }
-    bool out_allowed() const { return out_allowed_ != 0U; }
+    bool in_allowed(bool wheelchair) const {
+      return wheelchair ? wheelchair_in_allowed_ != 0 : in_allowed_ != 0U;
+    }
+    bool out_allowed(bool wheelchair) const {
+      return wheelchair ? wheelchair_out_allowed_ != 0 : out_allowed_ != 0U;
+    }
 
     cista::hash_t hash() const {
       return cista::hash_combine(cista::BASE_HASH, value());
@@ -50,9 +58,11 @@ struct timetable {
 
     friend auto operator<=>(stop const&, stop const&) = default;
 
-    location_idx_t::value_t location_ : 30;
+    location_idx_t::value_t location_ : 28;
     location_idx_t::value_t in_allowed_ : 1;
     location_idx_t::value_t out_allowed_ : 1;
+    location_idx_t::value_t wheelchair_in_allowed_ : 1;
+    location_idx_t::value_t wheelchair_out_allowed_ : 1;
   };
   static_assert(sizeof(stop) == sizeof(location_idx_t));
 

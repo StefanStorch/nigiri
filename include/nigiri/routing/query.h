@@ -33,8 +33,9 @@ struct query {
   std::uint8_t min_connection_count_{0U};
   bool extend_interval_earlier_{false};
   bool extend_interval_later_{false};
+  bool wheelchair_profile_{false};
   std::uint8_t profile_index_{0};
-  double max_walk_duration{0};
+  double max_walk_duration_{0};
 };
 
 }  // namespace nigiri::routing

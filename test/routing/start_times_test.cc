@@ -270,6 +270,7 @@ TEST_CASE("routing start times") {
   auto const B = tt->locations_.location_id_to_idx_.at(
       location_id{.id_ = "0000002", .src_ = src});
   auto starts = std::vector<start>{};
+  // TODO: Maybe add tests with wheelchair in/out allowed
   get_starts<nigiri::direction::kForward>(
       *tt,
       interval<unixtime_t>{sys_days{2020_y / March / 30},

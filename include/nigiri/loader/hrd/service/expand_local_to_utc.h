@@ -12,7 +12,8 @@ void build_stop_seq(ref_service const& s,
                     stamm const& st,
                     std::size_t const day_idx,
                     std::vector<duration_t> const& local_times,
-                    std::basic_string<timetable::stop::value_type>& stop_seq) {
+                    std::basic_string<timetable::stop::value_type>& stop_seq,
+                    std::chrono::sys_days day) {
   auto const& ref = store.get(s.ref_);
   auto const n_stops = s.stops(store).size();
   for (auto i = 0U; i != n_stops; ++i) {
@@ -36,11 +37,23 @@ void build_stop_seq(ref_service const& s,
         track_rule_key{st.resolve_location(ref.stops_[stop_idx].eva_num_),
                        train_nr, admin},
         mam, day_idx_t{static_cast<day_idx_t::value_t>(day_idx + day_offset)});
-
-    stop_seq[i] =
-        timetable::stop{l_idx, ref.stops_[stop_idx].dep_.in_out_allowed_,
-                        ref.stops_[stop_idx].arr_.in_out_allowed_}
-            .value();
+    auto const boarding_aid = st.resolve_boarding_aid(ref.stops_[stop_idx].eva_num_);
+    if (boarding_aid.empty()) {
+      stop_seq[i] =
+          timetable::stop{l_idx, ref.stops_[stop_idx].dep_.in_out_allowed_,
+                          ref.stops_[stop_idx].arr_.in_out_allowed_,
+                          ref.stops_[stop_idx].dep_.in_out_allowed_,
+                          ref.stops_[stop_idx].arr_.in_out_allowed_}
+              .value();
+    } else {
+      auto time_windows = boarding_aid.get_time_windows(std::chrono::weekday(day));
+      stop_seq[i] =
+          timetable::stop{l_idx, ref.stops_[stop_idx].dep_.in_out_allowed_,
+                          ref.stops_[stop_idx].arr_.in_out_allowed_,
+                          ref.stops_[stop_idx].dep_.in_out_allowed_ && time_windows.during(mam),
+                          ref.stops_[stop_idx].arr_.in_out_allowed_ && time_windows.during(mam)}
+              .value();
+    }
   }
 }
 
@@ -121,7 +134,7 @@ void to_local_time(service_store const& store,
     if (!first_day_offset.has_value()) {
       continue;
     }
-    build_stop_seq(s, store, st, day_idx, local_times, stop_seq);
+    build_stop_seq(s, store, st, day_idx, local_times, stop_seq, std::chrono::sys_days(day));
 
     auto const traffic_day =
         kBaseDayOffset.count() + day_idx +

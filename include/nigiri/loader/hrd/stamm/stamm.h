@@ -11,6 +11,7 @@
 #include "nigiri/loader/hrd/stamm/station.h"
 #include "nigiri/loader/hrd/stamm/timezone.h"
 #include "nigiri/loader/hrd/stamm/track.h"
+#include "nigiri/loader/hrd/stamm/boarding_aid.h"
 #include "nigiri/timetable.h"
 #include "nigiri/types.h"
 
@@ -34,6 +35,7 @@ struct stamm {
                                minutes_after_midnight_t,
                                day_idx_t) const;
   trip_line_idx_t resolve_line(std::string_view s);
+  boarding_aid resolve_boarding_aid(eva_number) const;
 
 private:
   friend std::uint64_t hash(config const&,
@@ -50,6 +52,7 @@ private:
   track_rule_map_t track_rules_;
   track_location_map_t track_locations_;
   timezone_map_t timezones_;
+  boarding_aid_t boarding_aid_;
   timetable& tt_;
 
   hash_map<string, trip_direction_idx_t> string_directions_;

@@ -196,7 +196,7 @@ void reconstruct_journey(timetable const& tt,
       auto const stop = timetable::stop{stop_seq[stop_idx]};
       auto const l = stop.location_idx();
 
-      if ((kFwd && !stop.in_allowed()) || (!kFwd && !stop.out_allowed())) {
+      if ((kFwd && !stop.in_allowed(q.wheelchair_profile_)) || (!kFwd && !stop.out_allowed(q.wheelchair_profile_))) {
         continue;
       }
 
@@ -289,8 +289,8 @@ void reconstruct_journey(timetable const& tt,
       for (auto const [i, stop] : utl::enumerate(location_seq)) {
         auto const s = timetable::stop{stop};
         if (s.location_idx() != l ||  //
-            (kFwd && (i == 0U || !s.out_allowed())) ||
-            (!kFwd && (i == location_seq.size() - 1 || !s.in_allowed()))) {
+            (kFwd && (i == 0U || !s.out_allowed(q.wheelchair_profile_))) ||
+            (!kFwd && (i == location_seq.size() - 1 || !s.in_allowed(q.wheelchair_profile_)))) {
           continue;
         }
 

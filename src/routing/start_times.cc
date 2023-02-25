@@ -85,7 +85,8 @@ template <direction SearchDir>
 void add_starts_in_interval(timetable const& tt,
                             interval<unixtime_t> const& interval,
                             offset const& o,
-                            std::vector<start>& starts) {
+                            std::vector<start>& starts,
+                            bool const wheelchair_profile) {
   trace("    add_starts_in_interval(interval={}, stop={}, duration={})\n",
         // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
         interval, location{tt, o.target_}, o.duration_);
@@ -107,13 +108,13 @@ void add_starts_in_interval(timetable const& tt,
       // - entering at last stop for forward search
       // - exiting at first stop for backward search
       if ((SearchDir == direction::kBackward &&
-           (i == 0U || !timetable::stop{s}.out_allowed())) ||
+           (i == 0U || !timetable::stop{s}.out_allowed(wheelchair_profile))) ||
           (SearchDir == direction::kForward &&
            (i == location_seq.size() - 1 ||
-            !timetable::stop{s}.in_allowed()))) {
+            !timetable::stop{s}.in_allowed(wheelchair_profile)))) {
         trace("    skip: i={}, out_allowed={}, in_allowed={}\n", i,
-              timetable::stop{s}.out_allowed(),
-              timetable::stop{s}.in_allowed());
+              timetable::stop{s}.out_allowed(wheelchair_profile),
+              timetable::stop{s}.in_allowed(wheelchair_profile));
         continue;
       }
 
@@ -148,7 +149,8 @@ void get_starts(timetable const& tt,
                 location_match_mode const mode,
                 bool const use_start_footpaths,
                 std::vector<start>& starts,
-                int profile) {
+                int profile,
+                bool wheelchair_profile) {
   std::set<location_idx_t> seen;
   for (auto const& o : station_offsets) {
     seen.clear();
@@ -166,7 +168,7 @@ void get_starts(timetable const& tt,
                                           ? tt.locations_.transfer_time_[l]
                                           : 0_minutes),
                        o.type_},
-                starts);
+                starts, wheelchair_profile);
 
             if (use_start_footpaths) {
               auto const footpaths = SearchDir == direction::kForward
@@ -179,7 +181,7 @@ void get_starts(timetable const& tt,
                 add_starts_in_interval<SearchDir>(
                     tt, interval,
                     offset{fp.target_, o.duration_ + fp.duration_, o.type_},
-                    starts);
+                    starts, wheelchair_profile);
               }
             }
           },
@@ -241,7 +243,8 @@ template void get_starts<direction::kForward>(
     location_match_mode,
     bool,
     std::vector<start>&,
-    int);
+    int,
+    bool);
 
 template void get_starts<direction::kBackward>(
     timetable const&,
@@ -250,6 +253,7 @@ template void get_starts<direction::kBackward>(
     location_match_mode,
     bool,
     std::vector<start>&,
-    int);
+    int,
+    bool);
 
 }  // namespace nigiri::routing

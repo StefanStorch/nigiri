@@ -48,7 +48,8 @@ void print_transport(timetable const& tt,
           tt.date_range_.from_ + to_idx(day_idx) * 1_days +
           tt.event_times_at_stop(route_idx, stop_idx,
                                  event_type::kArr)[transport_idx_in_route];
-      if (!s.out_allowed()) {
+      // TODO: maybe add something to print the wheelchair accessibility as well
+      if (!s.out_allowed(false)) {
         fmt::print(" -");
       } else {
         fmt::print("  ");
@@ -65,7 +66,8 @@ void print_transport(timetable const& tt,
           tt.date_range_.from_ + to_idx(day_idx) * 1_days +
           tt.event_times_at_stop(route_idx, stop_idx,
                                  event_type::kDep)[transport_idx_in_route];
-      if (!s.in_allowed()) {
+      // TODO: see above
+      if (!s.in_allowed(false)) {
         fmt::print("   -");
       } else {
         fmt::print("    ");

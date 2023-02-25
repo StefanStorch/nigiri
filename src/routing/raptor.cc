@@ -258,7 +258,7 @@ bool raptor<SearchDir, IntermodalTarget>::update_route(unsigned const k,
           by_transport_time + ((is_destination && !IntermodalTarget ? 0U : 1U) *
                                transfer_time_offset);
 
-      if ((kFwd ? stop.out_allowed() : stop.in_allowed()) &&
+      if ((kFwd ? stop.out_allowed(q_.wheelchair_profile_) : stop.in_allowed(q_.wheelchair_profile_)) &&
           is_better_or_eq(by_transport_time_with_transfer, current_best) &&
           is_better(by_transport_time_with_transfer, time_at_destination_)) {
 
@@ -348,8 +348,8 @@ bool raptor<SearchDir, IntermodalTarget>::update_route(unsigned const k,
               ? time_at_stop(r, et, stop_idx,
                              kFwd ? event_type::kDep : event_type::kArr)
               : kInvalidTime<SearchDir>;
-      if (!(kFwd && (stop_idx == stop_seq.size() - 1 || !stop.in_allowed())) &&
-          !(kBwd && (stop_idx == 0 || !stop.out_allowed())) &&
+      if (!(kFwd && (stop_idx == stop_seq.size() - 1 || !stop.in_allowed(q_.wheelchair_profile_))) &&
+          !(kBwd && (stop_idx == 0 || !stop.out_allowed(q_.wheelchair_profile_))) &&
           is_better_or_eq(current_best, et_time_at_stop)) {
         trace(
             "┊ │    update et: stop_idx={}, et_valid={}, stop_time={}, "
@@ -419,10 +419,8 @@ void raptor<SearchDir, IntermodalTarget>::update_footpaths(unsigned const k) {
 
     update_intermodal_dest(l_idx,
                            [&]() { return state_.best_[to_idx(l_idx)]; });
-    //TODO: welche footpaths sollen hier für die Berechnung verwendet werden
-    //TODO: wahrscheinlich als Parameter irgendwo mitgeben/ aus timetable lesen
-    auto const fps = kFwd ? tt_.locations_.footpaths_out_[0][l_idx]
-                          : tt_.locations_.footpaths_in_[0][l_idx];
+    auto const fps = kFwd ? tt_.locations_.footpaths_out_[q_.profile_index_][l_idx]
+                          : tt_.locations_.footpaths_in_[q_.profile_index_][l_idx];
     trace("┊ ├ updating footpaths of {}\n", location{tt_, l_idx});
     for (auto const& fp : fps) {
       NIGIRI_COUNT(n_footpaths_visited_);
@@ -646,7 +644,7 @@ void raptor<SearchDir, IntermodalTarget>::route() {
   state_.results_.resize(
       std::max(state_.results_.size(), state_.destinations_.size()));
   get_starts<SearchDir>(tt_, q_.start_time_, q_.start_, q_.start_match_mode_,
-                        q_.use_start_footpaths_, state_.starts_, q_.profile_index_);
+                        q_.use_start_footpaths_, state_.starts_, q_.profile_index_, q_.wheelchair_profile_);
 
 #ifdef NIGIRI_LOWER_BOUND
 

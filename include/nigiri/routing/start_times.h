@@ -26,7 +26,8 @@ void get_starts(timetable const&,
                 location_match_mode,
                 bool use_start_footpaths,
                 std::vector<start>&,
-                int profile=0);
+                int profile=0,
+                bool wheelchair_profile=false);
 
 void collect_destinations(timetable const&,
                           std::vector<std::vector<offset>> const& destinations,

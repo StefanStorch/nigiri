@@ -39,7 +39,8 @@ enum filename_key {
   FOOTPATHS,
   FOOTPATHS_EXT,
   MIN_CT_FILE,
-  NUM_FILES
+  NUM_FILES,
+  BOARDING_AID
 };
 
 static constexpr auto const ENCODING = "ISO8859-1";

@@ -38,6 +38,7 @@ stamm::stamm(config const& c, timetable& tt, dir const& d) : tt_{tt} {
   providers_ = parse_providers(c, tt, files.at(PROVIDERS).data());
   attributes_ = parse_attributes(c, tt, files.at(ATTRIBUTES).data());
   directions_ = parse_directions(c, tt, files.at(DIRECTIONS).data());
+  boarding_aid_ = parse_boarding_aid(c, d);
   tt.date_range_ = parse_interval(files.at(BASIC_DATA).data());
   parse_track_rules(c, *this, tt, files.at(TRACKS).data(), track_rules_,
                     track_locations_);
@@ -149,6 +150,14 @@ trip_line_idx_t stamm::resolve_line(std::string_view s) {
     tt_.trip_lines_.emplace_back(s);
     return idx;
   });
+}
+
+boarding_aid stamm::resolve_boarding_aid(eva_number e) const {
+  auto it = boarding_aid_.find(e);
+  if (it == end(boarding_aid_)) {
+    return {};
+  }
+  return it->second;
 }
 
 }  // namespace nigiri::loader::hrd
