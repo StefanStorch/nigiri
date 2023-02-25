@@ -35,7 +35,7 @@ boarding_aid_t parse_boarding_aid(config const& c,
           auto start_time = hhmm_to_min(atoi(start.c_str()));
           auto end_time = hhmm_to_min(atoi(end.c_str()));
           for (int i = 0; i < 7; ++i) {
-            current_aid.add_time_window(day_idx_t(i),
+            current_aid.add_time_window(std::chrono::weekday(i),
                                         duration_t(start_time),
                                         duration_t(end_time));
           }
@@ -53,7 +53,7 @@ boarding_aid_t parse_boarding_aid(config const& c,
         auto end = token.substr(start.length());
         auto start_time = hhmm_to_min(atoi(start.c_str()));
         auto end_time = hhmm_to_min(atoi(end.c_str()));
-        current_aid.add_time_window(day_idx_t(token_number), duration_t(start_time), duration_t(end_time));
+        current_aid.add_time_window(std::chrono::weekday(token_number), duration_t(start_time), duration_t(end_time));
       });
     });
     boarding_aids[current_aid.id_] = current_aid;
