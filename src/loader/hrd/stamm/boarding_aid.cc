@@ -47,6 +47,10 @@ boarding_aid_t parse_boarding_aid(config const& c,
     for_each_token_numbered(line, ';', [&](utl::cstr day, unsigned const token_number) {
       if (token_number == 0) {
         current_aid.id_ = parse_eva_number(day.c_str());
+        return;
+      }
+      if (day.length()<1) {
+        return;
       }
       for_each_token(day, '/', [&](utl::cstr token) {
         auto start = get_until(token, '-');
