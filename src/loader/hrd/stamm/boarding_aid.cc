@@ -11,8 +11,10 @@ boarding_aid_t parse_boarding_aid(config const& c,
   boarding_aid_t boarding_aids;
 
   std::string_view file_content;
+  file the_file;
   try {
-    file_content = d.get_file(c.core_data_ / "boarding_aid.csv").data();
+    the_file = d.get_file(c.fplan_ / "boarding_aid.txt");
+    file_content = the_file.data();
   } catch (...) {
     return boarding_aids;
   }
@@ -31,7 +33,7 @@ boarding_aid_t parse_boarding_aid(config const& c,
         }
         for_each_token(day, '/', [&](utl::cstr token) {
           auto start = get_until(token, '-');
-          auto end = token.substr(start.length());
+          auto end = token.substr(start.length() + 1);
           auto start_time = hhmm_to_min(atoi(start.c_str()));
           auto end_time = hhmm_to_min(atoi(end.c_str()));
           for (int i = 0; i < 7; ++i) {
@@ -44,8 +46,8 @@ boarding_aid_t parse_boarding_aid(config const& c,
       boarding_aids[current_aid.id_] = current_aid;
       return;
     }
-    for_each_token_numbered(line, ';', [&](utl::cstr day, unsigned const token_number) {
-      if (token_number == 0) {
+    for_each_token_numbered(line, ';', [&](utl::cstr day, unsigned const day_number) {
+      if (day_number == 0) {
         current_aid.id_ = parse_eva_number(day.c_str());
         return;
       }
@@ -54,10 +56,10 @@ boarding_aid_t parse_boarding_aid(config const& c,
       }
       for_each_token(day, '/', [&](utl::cstr token) {
         auto start = get_until(token, '-');
-        auto end = token.substr(start.length());
+        auto end = token.substr(start.length() + 1);
         auto start_time = hhmm_to_min(atoi(start.c_str()));
         auto end_time = hhmm_to_min(atoi(end.c_str()));
-        current_aid.add_time_window(std::chrono::weekday(token_number), duration_t(start_time), duration_t(end_time));
+        current_aid.add_time_window(std::chrono::weekday(day_number%7), duration_t(start_time), duration_t(end_time));
       });
     });
     boarding_aids[current_aid.id_] = current_aid;
