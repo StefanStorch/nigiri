@@ -43,7 +43,7 @@ void print_transport(timetable const& tt,
 
     if (stop_idx != from) {
       auto const t = tt.event_time(x, stop_idx, event_type::kArr);
-      if (!s.out_allowed()) {
+      if (!s.out_allowed(false)) {
         fmt::print(" -");
       } else {
         fmt::print("  ");
@@ -57,7 +57,7 @@ void print_transport(timetable const& tt,
 
     if (stop_idx != to - 1) {
       auto const t = tt.event_time(x, stop_idx, event_type::kDep);
-      if (!s.in_allowed()) {
+      if (!s.in_allowed(false)) {
         fmt::print("   -");
       } else {
         fmt::print("    ");
