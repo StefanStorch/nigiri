@@ -3,6 +3,8 @@
 #include <optional>
 #include <stack>
 
+#include "fmt/ostream.h"
+
 #include "geo/latlng.h"
 #include "geo/point_rtree.h"
 
@@ -68,7 +70,7 @@ void link_nearby_stations(timetable& tt) {
 
       auto const from_transfer_time = tt.locations_.transfer_time_[from_idx];
       auto const to_transfer_time = tt.locations_.transfer_time_[to_l_idx];
-      auto const walk_duration = duration_t{static_cast<unsigned>(
+      auto const walk_duration = u8_minutes{static_cast<unsigned>(
           std::round(geo::distance(from_pos, to_pos) / (60 * kWalkSpeed)))};
       auto const duration =
           std::max({from_transfer_time, to_transfer_time, walk_duration});
@@ -185,7 +187,7 @@ void process_component(timetable& tt,
   utl::verify(size > 2, "invalid size [id={}], first={}", lb->first,
               tt.locations_.ids_.at(location_idx_t{lb->second}).view());
 
-  auto const id = std::string_view{"8000159"};
+  auto const id = std::string_view{"0590041"};
   auto const needle =
       std::find_if(begin(tt.locations_.ids_), end(tt.locations_.ids_),
                    [&](auto&& x) { return x.view() == id; });
@@ -252,7 +254,7 @@ next:
     print_dbg("{} = {} \n", i, location{tt, location_idx_t{(lb + i)->second}});
   }
 
-  print_dbg("MAT BEFORE\n{}", mat);
+  print_dbg("MAT BEFORE {}\n", mat);
 
   floyd_warshall(mat);
 
