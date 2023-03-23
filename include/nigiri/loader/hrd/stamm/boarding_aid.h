@@ -40,12 +40,18 @@ struct boarding_aid {
       });
     }
 
+    bool empty() const {
+      return windows_.empty();
+    }
+
     vector<time_window> windows_;
   };
 
 
   bool empty() const {
-    return times_.empty();
+    return std::all_of(times_.begin(), times_.end(), [&](auto const& time_windows) {
+      return time_windows.empty();
+    });
   }
 
   time_windows get_time_windows(std::chrono::weekday day) const {
@@ -69,6 +75,6 @@ private:
 using boarding_aid_t = hash_map<eva_number, boarding_aid>;
 
 boarding_aid_t parse_boarding_aid(config const& c,
-                        dir const& d);
+                                  dir const& d);
 
 }  // namespace nigiri::loader::hrd

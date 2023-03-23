@@ -169,8 +169,7 @@ template <direction SearchDir>
 void reconstruct_journey(timetable const& tt,
                          query const& q,
                          search_state const& state,
-                         journey& j,
-                         int const profile) {
+                         journey& j) {
   (void)q;  // TODO(felix) support intermodal start
 
   constexpr auto const kFwd = SearchDir == direction::kForward;
@@ -374,8 +373,8 @@ void reconstruct_journey(timetable const& tt,
               }
 
               //TODO: welche footpaths sollen hier verwendet werden?
-              for (auto const& fp : kFwd ? tt.locations_.footpaths_in_[profile][eq]
-                                         : tt.locations_.footpaths_out_[profile][eq]) {
+              for (auto const& fp : kFwd ? tt.locations_.footpaths_in_[q.profile_index_][eq]
+                                         : tt.locations_.footpaths_out_[q.profile_index_][eq]) {
                 auto fp_intermodal_dest = check_fp(
                     k, l, curr_time,
                     {fp.target_, dest_offset.duration_ + fp.duration_});
@@ -425,7 +424,7 @@ void reconstruct_journey(timetable const& tt,
     trace("CHECKING FOOTPATHS OF {}\n", tt.locations_.names_.at(l).view());
     //TODO: welche footpaths sollen hier verwendet werden
     auto const fps =
-        kFwd ? tt.locations_.footpaths_in_[profile][l] : tt.locations_.footpaths_out_[profile][l];
+        kFwd ? tt.locations_.footpaths_in_[q.profile_index_][l] : tt.locations_.footpaths_out_[q.profile_index_][l];
     for (auto const& fp : fps) {
       trace("FP: (name={}, id={}) --{}--> (name={}, id={})\n",
             tt.locations_.names_.at(l).view(), tt.locations_.ids_.at(l).view(),
@@ -464,9 +463,9 @@ void reconstruct_journey(timetable const& tt,
 }
 
 template void reconstruct_journey<direction::kForward>(
-    timetable const& tt, query const& q, search_state const& state, journey& j, int const profile);
+    timetable const& tt, query const& q, search_state const& state, journey& j);
 
 template void reconstruct_journey<direction::kBackward>(
-    timetable const& tt, query const& q, search_state const& state, journey& j, int const profile);
+    timetable const& tt, query const& q, search_state const& state, journey& j);
 
 }  // namespace nigiri::routing

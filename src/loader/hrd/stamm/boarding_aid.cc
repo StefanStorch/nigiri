@@ -18,18 +18,15 @@ boarding_aid_t parse_boarding_aid(config const& c,
   } catch (...) {
     return boarding_aids;
   }
-
   utl::for_each_line_numbered(file_content, [&](utl::cstr line, unsigned const line_number) {
-    if (line_number == 0) {
-      return;
-    }
     boarding_aid current_aid{};
     if (std::count_if(line.begin(), line.end(), [&](const auto& item) {
           return item == ';';
         }) < 2) {
       for_each_token_numbered(line, ';', [&](utl::cstr day, unsigned const token_number) {
-        if (token_number == 0) {
-          current_aid.id_ = parse_eva_number(day.c_str());
+        if (token_number == 1) {
+          current_aid.id_ = parse_eva_number(day);
+          return;
         }
         for_each_token(day, '/', [&](utl::cstr token) {
           auto start = get_until(token, '-');
@@ -47,8 +44,8 @@ boarding_aid_t parse_boarding_aid(config const& c,
       return;
     }
     for_each_token_numbered(line, ';', [&](utl::cstr day, unsigned const day_number) {
-      if (day_number == 0) {
-        current_aid.id_ = parse_eva_number(day.c_str());
+      if (day_number == 1) {
+        current_aid.id_ = parse_eva_number(day);
         return;
       }
       if (day.length()<1) {
@@ -59,12 +56,12 @@ boarding_aid_t parse_boarding_aid(config const& c,
         auto end = token.substr(start.length() + 1);
         auto start_time = hhmm_to_min(atoi(start.c_str()));
         auto end_time = hhmm_to_min(atoi(end.c_str()));
-        current_aid.add_time_window(std::chrono::weekday(day_number%7), duration_t(start_time), duration_t(end_time));
+        current_aid.add_time_window(std::chrono::weekday((day_number-1)%7), duration_t(start_time), duration_t(end_time));
       });
     });
     boarding_aids[current_aid.id_] = current_aid;
   });
-
+  std::clog << "Found Boarding Aids for " << boarding_aids.size() << " Stations!\n";
   return boarding_aids;
 }
 
